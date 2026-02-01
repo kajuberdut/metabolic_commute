@@ -1,4 +1,4 @@
-const app = {
+window.app = {
     navTo: (viewName) => {
         // 1. Hide all views
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -235,7 +235,7 @@ class RehitTimer {
     }
 }
 
-const rehit = new RehitTimer();
+window.rehit = new RehitTimer();
 
 class Breather {
     constructor() {
@@ -281,9 +281,9 @@ class Breather {
     }
 }
 
-const breather = new Breather();
+window.breather = new Breather();
 
-function toggleHelp() {
+window.toggleHelp = function () {
     const modal = document.getElementById('rehit-help-modal');
     if (modal.open) {
         modal.close();
