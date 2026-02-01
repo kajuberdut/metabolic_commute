@@ -564,6 +564,11 @@
                 <button class="action-btn" id="btn-reset" onclick="rehit.reset()"
                     style="border-color: var(--faint); color: #999;">RESET</button>
             </div>
+            <div style="margin-top: 15px;">
+                <label style="font-family: 'Anton', sans-serif; text-transform: uppercase;">
+                    <input type="checkbox" id="chk-nosleep" style="transform: scale(1.5); margin-right: 10px;"> Prevent Sleep
+                </label>
+            </div>
         </div>
     </main>
 
@@ -680,7 +685,8 @@
                     phaseIdx: 0,
                     timeLeft: this.phases[0].duration,
                     isRunning: false,
-                    wakeLock: null
+                    wakeLock: null,
+                    noSleepVideo: null
                 };
                 this.interval = null;
                 this.audioCtx = null;
@@ -709,6 +715,7 @@
             }
 
             async requestWakeLock() {
+                // 1. Native Wake Lock API
                 if ('wakeLock' in navigator) {
                     try {
                         this.state.wakeLock = await navigator.wakeLock.request('screen');
@@ -716,6 +723,41 @@
                         console.log('Wake Lock error:', err);
                     }
                 }
+                
+                // 2. Fallback: Fake Video (NoSleep hack)
+                // Only if checkbox is checked
+                const useNoSleep = document.getElementById('chk-nosleep').checked;
+                if (useNoSleep) {
+                   this.enableNoSleep();
+                }
+            }
+
+            enableNoSleep() {
+                // Create a video element if it doesn't exist
+                if (!this.state.noSleepVideo) {
+                    this.state.noSleepVideo = document.createElement('video');
+                    this.state.noSleepVideo.setAttribute('playsinline', '');
+                    this.state.noSleepVideo.setAttribute('no-audio', '');
+                    this.state.noSleepVideo.setAttribute('muted', '');
+                    this.state.noSleepVideo.style.display = 'none'; // hidden
+                    document.body.appendChild(this.state.noSleepVideo);
+                }
+
+                // Create a canvas stream to "play"
+                const canvas = document.createElement('canvas');
+                canvas.width = 1;
+                canvas.height = 1;
+                const stream = canvas.captureStream(1); // 1 FPS
+                
+                this.state.noSleepVideo.srcObject = stream;
+                this.state.noSleepVideo.play().catch(e => console.log('NoSleep video play failed', e));
+            }
+
+            disableNoSleep() {
+                 if (this.state.noSleepVideo) {
+                    this.state.noSleepVideo.pause();
+                    this.state.noSleepVideo.srcObject = null;
+                 }
             }
 
             formatTime(seconds) {
@@ -804,7 +846,9 @@
             complete() {
                 this.state.isRunning = false;
                 clearInterval(this.interval);
+                clearInterval(this.interval);
                 if (this.state.wakeLock) this.state.wakeLock.release();
+                this.disableNoSleep();
                 this.ui.phase.innerText = "DONE";
                 this.ui.digits.innerText = "Good Job";
                 this.ui.btnStart.innerText = "RESET";
@@ -829,7 +873,9 @@
                     // Pause
                     this.state.isRunning = false;
                     clearInterval(this.interval);
+                    clearInterval(this.interval);
                     if (this.state.wakeLock) this.state.wakeLock.release();
+                    this.disableNoSleep();
                     this.updateUI();
                 }
             }
@@ -837,7 +883,9 @@
             reset() {
                 this.state.isRunning = false;
                 clearInterval(this.interval);
+                clearInterval(this.interval);
                 if (this.state.wakeLock) this.state.wakeLock.release();
+                this.disableNoSleep();
                 this.state.phaseIdx = 0;
                 this.state.timeLeft = this.phases[0].duration;
                 this.updateUI();
