@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Metabolic Commute</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Lora:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --canvas: #f8f5f2;
+            --ink: #1a1a1a;
+            --urgent: #d62828;
+            --calm: #2a9d8f;
+            --faint: #dcd6d0;
+
+            --nav-height: 70px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--canvas);
+            color: var(--ink);
+            font-family: 'Lora', serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Container for Views */
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3,
+        .ledger-header,
+        .huge-digit {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            border-bottom: 4px solid var(--ink);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .urgent {
+            color: var(--urgent);
+            font-weight: 700;
+        }
+
+        .calm {
+            color: var(--calm);
+            font-style: italic;
+            font-weight: 700;
+        }
+
+        .note {
+            font-size: 0.9rem;
+            color: #555;
+            border-left: 2px solid var(--urgent);
+            padding-left: 15px;
+            margin: 20px 0;
+        }
+
+        /* Buttons */
+        button.action-btn {
+            background: transparent;
+            border: 2px solid var(--ink);
+            border-radius: 0;
+            /* Strict angular design */
+            color: var(--ink);
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            touch-action: manipulation;
+            transition: all 0.1s;
+        }
+
+        button.action-btn:active {
+            background: var(--ink);
+            color: var(--canvas);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(var(--nav-height) + var(--safe-bottom));
+            background: var(--canvas);
+            border-top: 3px solid var(--ink);
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: var(--safe-bottom);
+            z-index: 100;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        nav button {
+            flex: 1;
+            background: none;
+            border: none;
+            border-radius: 0;
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            color: #999;
+            padding: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        nav button.active {
+            color: var(--ink);
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Ledger Table (Mobile Friendly) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        th {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            text-align: left;
+            border-bottom: 3px solid var(--ink);
+            padding: 10px 5px;
+        }
+
+        td {
+            padding: 10px 5px;
+            border-bottom: 1px solid var(--faint);
+            vertical-align: top;
+        }
+
+        .col-day {
+            width: 15%;
+            font-weight: bold;
+        }
+
+        /* Checklist */
+        ul.checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.checklist li {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        ul.checklist li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--urgent);
+            font-weight: bold;
+        }
+
+        .time-stamp {
+            font-family: 'Anton', sans-serif;
+            font-size: 1rem;
+            margin-right: 8px;
+            display: inline-block;
+            min-width: 60px;
+        }
+
+        .phase-block {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid var(--faint);
+            background: #fffdfa;
+        }
+
+        /* Placeholders */
+        .placeholder-view {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        /* Timer specific */
+        .timer-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .timer-phase {
+            font-family: 'Anton', sans-serif;
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 0px;
+            text-transform: uppercase;
+        }
+
+        .timer-digits {
+            font-family: 'Anton', sans-serif;
+            font-size: 8rem;
+            line-height: 1;
+            margin: 10px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-next {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            color: #777;
+            margin-bottom: 40px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .timer-container.urgent .timer-phase,
+        .timer-container.urgent .timer-digits {}
+
+        .timer-container.calm .timer-phase,
+        .timer-container.calm .timer-digits {
+            color: var(--calm);
+        }
+
+        /* Breather specific */
+        .breather-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 50vh;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .breath-circle {
+            width: 250px;
+            height: 250px;
+            background-color: var(--calm);
+            border-radius: 50%;
+            transform: scale(0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Anton', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            box-shadow: 0 0 0px rgba(42, 157, 143, 0);
+        }
+
+        .breather-container.running .breath-circle {
+            animation: breathe-anim 16s infinite linear;
+        }
+
+        @keyframes breathe-anim {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+
+            /* INHALE  */
+            25% {
+                transform: scale(1.0);
+                opacity: 1.0;
+            }
+
+            /* HOLD    */
+            50% {
+                transform: scale(1.0);
+                opacity: 1.0;
+            }
+
+            /* EXHALE  */
+            75% {
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+
+            /* HOLD    */
+            100% {
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+
+            /* LOOP    */
+        }
+
+        .breath-controls {
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Help Button */
+        .btn-help {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--ink);
+            background: transparent;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.2rem;
+            color: var(--ink);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .btn-help:hover {
+            background: var(--ink);
+            color: var(--canvas);
+        }
+
+        /* Modal Overlay */
+        dialog.modal-overlay {
+            background: transparent;
+            border: none;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            background-color: rgba(248, 245, 242, 0.95);
+            /* Canvas color with opacity */
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        /* Modal Layout */
+        .modal-content {
+            max-width: 600px;
+            margin: 50px auto;
+            background: var(--canvas);
+            border: 3px solid var(--ink);
+            padding: 0;
+            color: var(--ink);
+            position: relative;
+            box-shadow: 10px 10px 0px var(--faint);
+            /* Hard shadow, no blur */
+        }
+
+        /* Typography & ledger styles */
+        .modal-header {
+            background: var(--ink);
+            color: var(--canvas);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: 1px solid var(--canvas);
+            color: var(--canvas);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Lora', serif;
+        }
+
+        .help-section {
+            margin-bottom: 2rem;
+        }
+
+        .help-section h4 {
+            font-family: 'Anton', sans-serif;
+            border-bottom: 2px solid var(--ink);
+            margin-bottom: 1rem;
+            color: var(--ink);
+        }
+
+        /* The Mini-Ledger inside the help */
+        .ledger-row {
+            display: flex;
+            border-bottom: 1px solid var(--faint);
+            padding: 0.5rem 0;
+        }
+
+        .ledger-row.urgent {
+            color: var(--urgent);
+        }
+
+        .ledger-row.calm {
+            color: var(--calm);
+        }
+
+        .ledger-time {
+            font-family: 'Anton', sans-serif;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .ledger-desc {
+            font-size: 0.9rem;
+        }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- VIEW: LEDGER (Home) -->
+    <main id="view-ledger" class="view-section active">
+        <h1>Metabolic Protocol<br><span
+                style="font-size: 0.4em; color: var(--calm); display:block; margin-top:5px;">Efficiency //
+                Longevity</span></h1>
+
+        <h2>I. The Ledger</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-day">Day</th>
+                    <th>AM <span
+                            style="font-weight:400; font-family:'Lora'; font-size:0.7em; color:#666;">(Output)</span>
+                    </th>
+                    <th>PM <span style="font-weight:400; font-family:'Lora'; font-size:0.7em; color:#666;">(Heat)</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="col-day">Mon</td>
+                    <td><span class="urgent">REHIT</span></td>
+                    <td><span class="calm">Sauna</span></td>
+                </tr>
+                <tr>
+                    <td class="col-day">Tue</td>
+                    <td>Rest</td>
+                    <td>Family</td>
+                </tr>
+                <tr>
+                    <td class="col-day">Wed</td>
+                    <td><span class="urgent">REHIT</span></td>
+                    <td><span class="calm">Sauna</span></td>
+                </tr>
+                <tr>
+                    <td class="col-day">Thu</td>
+                    <td>Rest</td>
+                    <td>Family</td>
+                </tr>
+                <tr>
+                    <td class="col-day">Fri</td>
+                    <td><span class="urgent">REHIT</span></td>
+                    <td><span class="calm">Sauna</span></td>
+                </tr>
+                <tr>
+                    <td class="col-day">Sat</td>
+                    <td>Rest</td>
+                    <td>Rest</td>
+                </tr>
+                <tr>
+                    <td class="col-day">Sun</td>
+                    <td>Rest</td>
+                    <td>Rest</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>II. Protocols</h2>
+        <div class="phase-block" onclick="app.navTo('rehit')">
+            <h3 style="margin-top:0;">AM: Sprint Protocol</h3>
+            <p>15 minutes. 2x20s Max Effort Sprints. Glycogen depletion.</p>
+            <button class="action-btn">Open Timer &rarr;</button>
+        </div>
+
+        <div class="phase-block" onclick="app.navTo('breathe')">
+            <h3 style="margin-top:0;">PM: Heat Protocol</h3>
+            <p>20 minutes sauna. Box breathing (4-4-4-4) required.</p>
+            <button class="action-btn">Open Breather &rarr;</button>
+        </div>
+    </main>
+
+    <!-- VIEW: REHIT TIMER -->
+    <main id="view-rehit" class="view-section">
+        <button class="btn-help" onclick="toggleHelp()">?</button>
+        <div class="timer-container" id="rehit-display">
+            <div class="timer-phase" id="timer-phase">READY</div>
+            <!-- 15:00 -->
+            <div class="timer-digits" id="timer-digits">REHIT</div>
+            <div class="timer-next" id="timer-next">15 Minute Protocol</div>
+
+            <div class="timer-controls">
+                <button class="action-btn" id="btn-start" onclick="rehit.toggle()">START</button>
+                <button class="action-btn" id="btn-reset" onclick="rehit.reset()"
+                    style="border-color: var(--faint); color: #999;">RESET</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW: BREATHER -->
+    <main id="view-breathe" class="view-section">
+        <div class="breather-container" id="breather-container">
+            <div class="breath-circle" id="breath-circle">
+                <span id="breath-text">READY</span>
+            </div>
+        </div>
+        <div class="breath-controls">
+            <button class="action-btn" id="btn-breathe" onclick="breather.toggle()">START BREATHING</button>
+            <p class="note" style="text-align: center; border: none; font-style: italic; color: #999;">4s In / 4s Hold /
+                4s Out / 4s Hold</p>
+        </div>
+    </main>
+
+    <!-- VIEW: STRENGTH -->
+    <main id="view-strength" class="view-section">
+        <h1>Strength</h1>
+        <div class="placeholder-view">
+            <h2>TBD</h2>
+            <p>Coming Soon.</p>
+        </div>
+    </main>
+
+    <dialog id="rehit-help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3>Protocol Manifest</h3>
+                <button class="btn-close" onclick="toggleHelp()">×</button>
+            </header>
+
+            <div class="modal-body">
+                <section class="help-section">
+                    <h4>01 // The Logic</h4>
+                    <p>REHIT (Reduced Exertion HIIT) is not about burning calories while you bike. It is about
+                        <strong>metabolic signaling</strong>. The two 20-second sprints are designed to instantly
+                        deplete the glycogen (sugar) in your muscles. This triggers a "survival" signal that forces your
+                        body to improve insulin sensitivity and VO2 max rapidly.
+                    </p>
+                </section>
+
+                <section class="help-section">
+                    <h4>02 // The Setup</h4>
+                    <ul>
+                        <li><strong>Equipment:</strong> Air Bike (Preferred) or any machine where you can safely exert
+                            100% force without "spinning out."</li>
+                        <li><strong>Hydration:</strong> Drink 16oz water <em>before</em> starting. Do not drink during
+                            (too short).</li>
+                        <li><strong>Safety:</strong> If you feel dizzy, stop immediately and sit down.</li>
+                    </ul>
+                </section>
+
+                <section class="help-section">
+                    <h4>03 // The Execution</h4>
+                    <div class="ledger-row">
+                        <span class="ledger-time">Warm Up</span>
+                        <span class="ledger-desc">Lazy pace. Just move the joints.</span>
+                    </div>
+                    <div class="ledger-row urgent">
+                        <span class="ledger-time">SPRINT (20s)</span>
+                        <span class="ledger-desc"><strong>Maximum Effort.</strong> Close your eyes. Try to break the
+                            handles. If you are pacing yourself, you are doing it wrong.</span>
+                    </div>
+                    <div class="ledger-row">
+                        <span class="ledger-time">Recovery</span>
+                        <span class="ledger-desc">Slow spin. Do not stop moving (flushes lactate).</span>
+                    </div>
+                    <div class="ledger-row calm">
+                        <span class="ledger-time">Cooldown</span>
+                        <span class="ledger-desc">Slow spin. Use double-inhale breathing to calm down.</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- NAVIGATION BAR -->
+    <nav>
+        <button onclick="app.navTo('ledger')" id="nav-ledger" class="active">Ledger</button>
+        <button onclick="app.navTo('rehit')" id="nav-rehit">REHIT</button>
+        <button onclick="app.navTo('breathe')" id="nav-breathe">Breathe</button>
+        <button onclick="app.navTo('strength')" id="nav-strength">Strength</button>
+    </nav>
+
+    <script>
+        const app = {
+            navTo: (viewName) => {
+                // 1. Hide all views
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                // 2. Show target view
+                document.getElementById(`view-${viewName}`).classList.add('active');
+
+                // 3. Update Nav State
+                document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+                document.getElementById(`nav-${viewName}`).classList.add('active');
+
+                // 4. Scroll to top
+                window.scrollTo(0, 0);
+            }
+        };
+
+        class RehitTimer {
+            constructor() {
+                this.phases = [
+                    { name: "Warm Up", duration: 120, type: "normal" },
+                    { name: "SPRINT", duration: 20, type: "urgent" },
+                    { name: "Recovery", duration: 180, type: "calm" }, // 3 mins
+                    { name: "SPRINT", duration: 20, type: "urgent" },
+                    { name: "Cool Down", duration: 180, type: "calm" } // 3 mins
+                ];
+                this.state = {
+                    phaseIdx: 0,
+                    timeLeft: this.phases[0].duration,
+                    isRunning: false,
+                    wakeLock: null
+                };
+                this.interval = null;
+                this.audioCtx = null;
+
+                // Initial binding
+                setTimeout(() => this.updateUI(), 100);
+            }
+
+            get ui() {
+                return {
+                    phase: document.getElementById('timer-phase'),
+                    digits: document.getElementById('timer-digits'),
+                    next: document.getElementById('timer-next'),
+                    container: document.getElementById('rehit-display'),
+                    btnStart: document.getElementById('btn-start')
+                };
+            }
+
+            initAudio() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            }
+
+            async requestWakeLock() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        this.state.wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {
+                        console.log('Wake Lock error:', err);
+                    }
+                }
+            }
+
+            formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            updateUI() {
+                if (!this.ui.phase) return; // Guard
+
+                const phase = this.phases[this.state.phaseIdx];
+                this.ui.phase.innerText = phase.name;
+                this.ui.digits.innerText = this.formatTime(this.state.timeLeft);
+
+                // Styles
+                this.ui.container.className = 'timer-container ' + (phase.type !== 'normal' ? phase.type : '');
+
+                // Next
+                const nextPhase = this.phases[this.state.phaseIdx + 1];
+                this.ui.next.innerText = nextPhase ? `Up Next: ${nextPhase.name}` : "Session Complete";
+
+                // Button
+                this.ui.btnStart.innerText = this.state.isRunning ? "PAUSE" : "START";
+                this.ui.btnStart.style.borderColor = this.state.isRunning ? "var(--urgent)" : "var(--ink)";
+            }
+
+            playBeep(freq = 800, type = 'sine', duration = 0.1) {
+                if (!this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + duration);
+                osc.stop(this.audioCtx.currentTime + duration);
+            }
+
+            playSiren() {
+                if (!this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, this.audioCtx.currentTime + 1.5);
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start();
+                gain.gain.setValueAtTime(1, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + 1.5);
+                osc.stop(this.audioCtx.currentTime + 1.5);
+            }
+
+            tick() {
+                if (this.state.timeLeft > 0) {
+                    // Countdown logic (3-2-1)
+                    if (this.state.timeLeft <= 3) {
+                        this.playBeep(1200, 'square', 0.1);
+                    }
+
+                    this.state.timeLeft--;
+                    this.updateUI();
+                } else {
+                    // Phase Transition
+                    if (this.state.phaseIdx < this.phases.length - 1) {
+                        this.state.phaseIdx++;
+                        this.state.timeLeft = this.phases[this.state.phaseIdx].duration;
+
+                        // Audio Cue for new phase
+                        const phase = this.phases[this.state.phaseIdx];
+                        if (phase.type === 'urgent') {
+                            this.playSiren();
+                        } else {
+                            this.playBeep(600, 'sine', 0.5);
+                        }
+
+                        this.updateUI();
+                    } else {
+                        this.complete();
+                    }
+                }
+            }
+
+            complete() {
+                this.state.isRunning = false;
+                clearInterval(this.interval);
+                if (this.state.wakeLock) this.state.wakeLock.release();
+                this.ui.phase.innerText = "DONE";
+                this.ui.digits.innerText = "Good Job";
+                this.ui.btnStart.innerText = "RESET";
+                this.playBeep(800, 'sine', 0.5);
+            }
+
+            toggle() {
+                // Check if completed
+                if (this.ui.phase.innerText === "DONE") {
+                    this.reset();
+                    return;
+                }
+
+                if (!this.state.isRunning) {
+                    // Start
+                    this.initAudio();
+                    this.requestWakeLock();
+                    this.state.isRunning = true;
+                    this.interval = setInterval(() => this.tick(), 1000);
+                    this.updateUI();
+                } else {
+                    // Pause
+                    this.state.isRunning = false;
+                    clearInterval(this.interval);
+                    if (this.state.wakeLock) this.state.wakeLock.release();
+                    this.updateUI();
+                }
+            }
+
+            reset() {
+                this.state.isRunning = false;
+                clearInterval(this.interval);
+                if (this.state.wakeLock) this.state.wakeLock.release();
+                this.state.phaseIdx = 0;
+                this.state.timeLeft = this.phases[0].duration;
+                this.updateUI();
+                this.ui.phase.innerText = "READY"; // Override the "Warm Up" for initial state
+            }
+        }
+
+        const rehit = new RehitTimer();
+
+        class Breather {
+            constructor() {
+                this.isRunning = false;
+                this.textInterval = null;
+                // Defer UI binding slightly or use getter
+            }
+
+            get ui() {
+                return {
+                    container: document.getElementById('breather-container'),
+                    text: document.getElementById('breath-text'),
+                    btn: document.getElementById('btn-breathe')
+                };
+            }
+
+            startLoop() {
+                let phase = 0;
+                const phases = ["INHALE", "HOLD", "EXHALE", "HOLD"];
+
+                // Initial
+                this.ui.text.innerText = phases[0];
+
+                this.textInterval = setInterval(() => {
+                    phase = (phase + 1) % 4;
+                    this.ui.text.innerText = phases[phase];
+                }, 4000); // 4s per phase
+            }
+
+            toggle() {
+                if (!this.isRunning) {
+                    this.isRunning = true;
+                    this.ui.container.classList.add('running');
+                    this.ui.btn.innerText = "STOP";
+                    this.startLoop();
+                } else {
+                    this.isRunning = false;
+                    this.ui.container.classList.remove('running');
+                    this.ui.btn.innerText = "START BREATHING";
+                    clearInterval(this.textInterval);
+                    this.ui.text.innerText = "READY";
+                }
+            }
+        }
+
+        const breather = new Breather();
+
+        function toggleHelp() {
+            const modal = document.getElementById('rehit-help-modal');
+            if (modal.open) {
+                modal.close();
+            } else {
+                modal.showModal();
+            }
+        }
+
+        // Close modal if clicking on the backdrop (outside the content)
+        document.getElementById('rehit-help-modal').addEventListener('click', function (event) {
+            const rect = this.getBoundingClientRect();
+            const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height
+                && rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+
+            // Check if we clicked on the ::backdrop (dialog element itself acts as backdrop when clicked outside contents)
+            // However, strictly dealing with the div inside is safer for click targeting:
+            // A simpler heuristic for a full screen dialog:
+            if (event.target === this) {
+                this.close();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
