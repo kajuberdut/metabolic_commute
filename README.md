@@ -16,3 +16,13 @@ The "Metabolic Commute" is a simple, offline-capable HTML5 utility designed for 
 ## Philosophy
 
 The project prioritizes simplicity and sustainability to improve metabolic health with minimal time commitment. It is designed to act as a "fake commute" to separate home life from work mode, using physiological triggers (intense exertion or heat) to shift mental states.
+
+## Deployment
+
+Run locally with Docker Compose:
+
+```bash
+docker compose up -d
+```
+
+The app will be available at `http://localhost:8080`. Configure the port in `.env`.
