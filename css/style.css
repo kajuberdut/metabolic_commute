@@ -1,0 +1,463 @@
+:root {
+    --canvas: #f8f5f2;
+    --ink: #1a1a1a;
+    --urgent: #d62828;
+    --calm: #2a9d8f;
+    --faint: #dcd6d0;
+
+    --nav-height: 70px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: 'Lora', serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Container for Views */
+main {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+.ledger-header,
+.huge-digit {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+h1 {
+    font-size: 2.5rem;
+    border-bottom: 4px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    margin-top: 20px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.urgent {
+    color: var(--urgent);
+    font-weight: 700;
+}
+
+.calm {
+    color: var(--calm);
+    font-style: italic;
+    font-weight: 700;
+}
+
+.note {
+    font-size: 0.9rem;
+    color: #555;
+    border-left: 2px solid var(--urgent);
+    padding-left: 15px;
+    margin: 20px 0;
+}
+
+/* Buttons */
+button.action-btn {
+    background: transparent;
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    /* Strict angular design */
+    color: var(--ink);
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
+    touch-action: manipulation;
+    transition: all 0.1s;
+}
+
+button.action-btn:active {
+    background: var(--ink);
+    color: var(--canvas);
+}
+
+/* Navigation */
+nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--nav-height) + var(--safe-bottom));
+    background: var(--canvas);
+    border-top: 3px solid var(--ink);
+    display: flex;
+    justify-content: space-around;
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+}
+
+nav button {
+    flex: 1;
+    background: none;
+    border: none;
+    border-radius: 0;
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: #999;
+    padding: 10px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+nav button.active {
+    color: var(--ink);
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Views */
+.view-section {
+    display: none;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.view-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ledger Table (Mobile Friendly) */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+th {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    text-align: left;
+    border-bottom: 3px solid var(--ink);
+    padding: 10px 5px;
+}
+
+td {
+    padding: 10px 5px;
+    border-bottom: 1px solid var(--faint);
+    vertical-align: top;
+}
+
+.col-day {
+    width: 15%;
+    font-weight: bold;
+}
+
+/* Checklist */
+ul.checklist {
+    list-style: none;
+    padding: 0;
+}
+
+ul.checklist li {
+    margin-bottom: 15px;
+    padding-left: 20px;
+    position: relative;
+}
+
+ul.checklist li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--urgent);
+    font-weight: bold;
+}
+
+.time-stamp {
+    font-family: 'Anton', sans-serif;
+    font-size: 1rem;
+    margin-right: 8px;
+    display: inline-block;
+    min-width: 60px;
+}
+
+.phase-block {
+    margin-bottom: 25px;
+    padding: 15px;
+    border: 1px solid var(--faint);
+    background: #fffdfa;
+}
+
+/* Placeholders */
+.placeholder-view {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+}
+
+/* Timer specific */
+.timer-container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.timer-phase {
+    font-family: 'Anton', sans-serif;
+    font-size: 3rem;
+    line-height: 1;
+    margin-bottom: 0px;
+    text-transform: uppercase;
+}
+
+.timer-digits {
+    font-family: 'Anton', sans-serif;
+    font-size: 8rem;
+    line-height: 1;
+    margin: 10px 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.timer-next {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: #777;
+    margin-bottom: 40px;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.timer-container.urgent .timer-phase,
+.timer-container.urgent .timer-digits {}
+
+.timer-container.calm .timer-phase,
+.timer-container.calm .timer-digits {
+    color: var(--calm);
+}
+
+/* Breather specific */
+.breather-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    position: relative;
+    margin-top: 20px;
+}
+
+.breath-circle {
+    width: 250px;
+    height: 250px;
+    background-color: var(--calm);
+    border-radius: 50%;
+    transform: scale(0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Anton', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    box-shadow: 0 0 0px rgba(42, 157, 143, 0);
+}
+
+.breather-container.running .breath-circle {
+    animation: breathe-anim 16s infinite linear;
+}
+
+@keyframes breathe-anim {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.8;
+    }
+
+    /* INHALE  */
+    25% {
+        transform: scale(1.0);
+        opacity: 1.0;
+    }
+
+    /* HOLD    */
+    50% {
+        transform: scale(1.0);
+        opacity: 1.0;
+    }
+
+    /* EXHALE  */
+    75% {
+        transform: scale(0.5);
+        opacity: 0.8;
+    }
+
+    /* HOLD    */
+    100% {
+        transform: scale(0.5);
+        opacity: 0.8;
+    }
+
+    /* LOOP    */
+}
+
+.breath-controls {
+    margin-top: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Help Button */
+.btn-help {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--ink);
+    background: transparent;
+    font-family: 'Anton', sans-serif;
+    font-size: 1.2rem;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.btn-help:hover {
+    background: var(--ink);
+    color: var(--canvas);
+}
+
+/* Modal Overlay */
+dialog.modal-overlay {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    background-color: rgba(248, 245, 242, 0.95);
+    /* Canvas color with opacity */
+    backdrop-filter: blur(5px);
+    z-index: 999;
+}
+
+/* Modal Layout */
+.modal-content {
+    max-width: 600px;
+    margin: 50px auto;
+    background: var(--canvas);
+    border: 3px solid var(--ink);
+    padding: 0;
+    color: var(--ink);
+    position: relative;
+    box-shadow: 10px 10px 0px var(--faint);
+    /* Hard shadow, no blur */
+}
+
+/* Typography & ledger styles */
+.modal-header {
+    background: var(--ink);
+    color: var(--canvas);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-close {
+    background: transparent;
+    border: 1px solid var(--canvas);
+    color: var(--canvas);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 2rem;
+    font-family: 'Lora', serif;
+}
+
+.help-section {
+    margin-bottom: 2rem;
+}
+
+.help-section h4 {
+    font-family: 'Anton', sans-serif;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 1rem;
+    color: var(--ink);
+}
+
+/* The Mini-Ledger inside the help */
+.ledger-row {
+    display: flex;
+    border-bottom: 1px solid var(--faint);
+    padding: 0.5rem 0;
+}
+
+.ledger-row.urgent {
+    color: var(--urgent);
+}
+
+.ledger-row.calm {
+    color: var(--calm);
+}
+
+.ledger-time {
+    font-family: 'Anton', sans-serif;
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.ledger-desc {
+    font-size: 0.9rem;
+}
