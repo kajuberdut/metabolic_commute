@@ -52,6 +52,7 @@ h1 {
     padding-bottom: 20px;
     margin-bottom: 30px;
     margin-top: 20px;
+    text-align: center;
 }
 
 h2 {
@@ -162,31 +163,78 @@ nav button.active {
     }
 }
 
-/* Ledger Table (Mobile Friendly) */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
+/* Focus Ledger */
+.mandate-card {
+    padding: 2rem 0;
+    margin-bottom: 3rem;
+    border-bottom: 4px solid var(--ink);
+    text-align: center;
 }
 
-th {
-    font-family: 'Anton', sans-serif;
+.mandate-day {
+    font-family: 'Anton';
+    font-size: 5rem;
+    /* Huge */
+    line-height: 0.9;
+    color: var(--ink);
     text-transform: uppercase;
-    text-align: left;
-    border-bottom: 3px solid var(--ink);
-    padding: 10px 5px;
 }
 
-td {
-    padding: 10px 5px;
+.mandate-status {
+    font-family: 'Anton';
+    font-size: 2.5rem;
+    margin-top: 10px;
+}
+
+.mandate-status.urgent {
+    color: var(--urgent);
+}
+
+.mandate-status.calm {
+    color: var(--calm);
+}
+
+.mandate-note {
+    font-family: 'Lora';
+    font-size: 1.1rem;
+    color: #666;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* The "Ghost" List */
+.schedule-horizon h3 {
+    text-align: center;
+}
+
+.horizon-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.horizon-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
     border-bottom: 1px solid var(--faint);
-    vertical-align: top;
+    font-family: 'Lora';
+    font-size: 1.1rem;
 }
 
-.col-day {
-    width: 15%;
+.ghost-day {
+    opacity: 0.4;
+    /* Fades out the repetition */
+    filter: grayscale(100%);
+}
+
+.day-label {
+    width: 60px;
+    display: inline-block;
     font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 1px;
 }
 
 /* Checklist */

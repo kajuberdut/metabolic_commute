@@ -1,4 +1,69 @@
+class Schedule {
+    constructor() {
+        this.days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        this.protocol = [
+            { day: "Mon", status: "REHIT + HEAT", type: "urgent", note: "High Output" },
+            { day: "Tue", status: "REST", type: "calm", note: "Recovery" },
+            { day: "Wed", status: "REHIT + HEAT", type: "urgent", note: "High Output" },
+            { day: "Thu", status: "REST", type: "calm", note: "Recovery" },
+            { day: "Fri", status: "REHIT + HEAT", type: "urgent", note: "High Output" },
+            { day: "Sat", status: "REST", type: "calm", note: "Family Time" },
+            { day: "Sun", status: "REST", type: "calm", note: "Family Time" }
+        ];
+    }
+
+    render() {
+        const todayIdx = new Date().getDay(); // 0 = Sun, 1 = Mon...
+        // Adjust for Mon-start array if needed, but here protocol is mapped by name or logic.
+        // Let's align protocol array indices with getDay() for simplicity, 
+        // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+
+        // Re-map protocol to match 0-6 index
+        const weekMap = [
+            this.protocol[6], // Sun
+            this.protocol[0], // Mon
+            this.protocol[1], // Tue
+            this.protocol[2], // Wed
+            this.protocol[3], // Thu
+            this.protocol[4], // Fri
+            this.protocol[5]  // Sat
+        ];
+
+        const todayData = weekMap[todayIdx];
+
+        // 1. Render Hero
+        const heroEl = document.getElementById('daily-mandate');
+        if (heroEl) {
+            heroEl.innerHTML = `
+                <div class="mandate-day">${this.days[todayIdx].toUpperCase()}</div>
+                <div class="mandate-status ${todayData.type}">${todayData.status}</div>
+                <div class="mandate-note">${todayData.note}</div>
+            `;
+        }
+
+        // 2. Render Ghost List
+        const listEl = document.getElementById('horizon-list');
+        if (listEl) {
+            listEl.innerHTML = '';
+            // Show next 6 days
+            for (let i = 1; i < 7; i++) {
+                const nextIdx = (todayIdx + i) % 7;
+                const nextDay = weekMap[nextIdx];
+
+                const li = document.createElement('li');
+                li.className = 'ghost-day';
+                li.innerHTML = `
+                    <span class="day-label">${this.days[nextIdx].toUpperCase()}</span> 
+                    <span>${nextDay.status}</span>
+                `;
+                listEl.appendChild(li);
+            }
+        }
+    }
+}
+
 window.app = {
+    schedule: new Schedule(),
     navTo: (viewName) => {
         // 1. Hide all views
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -11,8 +76,14 @@ window.app = {
 
         // 4. Scroll to top
         window.scrollTo(0, 0);
+    },
+    init: () => {
+        window.app.schedule.render();
     }
 };
+
+// Auto-init
+document.addEventListener('DOMContentLoaded', window.app.init);
 
 class RehitTimer {
     constructor() {

@@ -19,68 +19,17 @@
                 style="font-size: 0.4em; color: var(--calm); display:block; margin-top:5px;">Efficiency //
                 Longevity</span></h1>
 
-        <h2>I. The Ledger</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-day">Day</th>
-                    <th>AM <span
-                            style="font-weight:400; font-family:'Lora'; font-size:0.7em; color:#666;">(Output)</span>
-                    </th>
-                    <th>PM <span style="font-weight:400; font-family:'Lora'; font-size:0.7em; color:#666;">(Heat)</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="col-day">Mon</td>
-                    <td><span class="urgent">REHIT</span></td>
-                    <td><span class="calm">Sauna</span></td>
-                </tr>
-                <tr>
-                    <td class="col-day">Tue</td>
-                    <td>Rest</td>
-                    <td>Family</td>
-                </tr>
-                <tr>
-                    <td class="col-day">Wed</td>
-                    <td><span class="urgent">REHIT</span></td>
-                    <td><span class="calm">Sauna</span></td>
-                </tr>
-                <tr>
-                    <td class="col-day">Thu</td>
-                    <td>Rest</td>
-                    <td>Family</td>
-                </tr>
-                <tr>
-                    <td class="col-day">Fri</td>
-                    <td><span class="urgent">REHIT</span></td>
-                    <td><span class="calm">Sauna</span></td>
-                </tr>
-                <tr>
-                    <td class="col-day">Sat</td>
-                    <td>Rest</td>
-                    <td>Rest</td>
-                </tr>
-                <tr>
-                    <td class="col-day">Sun</td>
-                    <td>Rest</td>
-                    <td>Rest</td>
-                </tr>
-            </tbody>
-        </table>
+        <div id="schedule-view">
+            <div id="daily-mandate" class="mandate-card">
+                <!-- Injected via JS -->
+            </div>
 
-        <h2>II. Protocols</h2>
-        <div class="phase-block" onclick="app.navTo('rehit')">
-            <h3 style="margin-top:0;">AM: Sprint Protocol</h3>
-            <p>15 minutes. 2x20s Max Effort Sprints. Glycogen depletion.</p>
-            <button class="action-btn">Open Timer &rarr;</button>
-        </div>
-
-        <div class="phase-block" onclick="app.navTo('breathe')">
-            <h3 style="margin-top:0;">PM: Heat Protocol</h3>
-            <p>20 minutes sauna. Box breathing (4-4-4-4) required.</p>
-            <button class="action-btn">Open Breather &rarr;</button>
+            <div class="schedule-horizon">
+                <h3 style="margin-top: 0; color: #999; font-size: 1rem; text-align: center;">Weekly Horizon</h3>
+                <ul id="horizon-list" class="horizon-list">
+                    <!-- Injected via JS -->
+                </ul>
+            </div>
         </div>
     </main>
 
