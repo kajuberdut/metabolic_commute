@@ -46,5 +46,6 @@ await writeFile(`${OUT_DIR}/index.html`, minHtml);
 console.log('Copying Fonts...');
 await cp('fonts', `${OUT_DIR}/fonts`, { recursive: true });
 await cp('favicon.ico', `${OUT_DIR}/favicon.ico`);
+await cp('favicon.svg', `${OUT_DIR}/favicon.svg`);
 
 console.log('Build Complete!');
